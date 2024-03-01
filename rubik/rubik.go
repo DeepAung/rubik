@@ -21,11 +21,9 @@ b w g y
 */
 
 type IRubik interface {
+	Print()
+	State() *[6][3][3]uint8
 	Rotates(notations ...string) error
-	rotate(notationStr string) error
-	getNotation(notationStr string) (*types.Notation, error)
-	rotateFace(faceIndex int, inverse bool)
-	rotateSide(faceIndex int, inverse bool)
 	Reset()
 }
 
@@ -37,6 +35,89 @@ func NewRubik() IRubik {
 	return &rubik{
 		state: constant.InitialState,
 	}
+}
+
+func (r *rubik) Print() {
+	str := "\n" +
+		"       %s%s%s\n" +
+		"       %s%s%s\n" +
+		"       %s%s%s\n" +
+		"\n" +
+		"%s%s%s %s%s%s %s%s%s %s%s%s \n" +
+		"%s%s%s %s%s%s %s%s%s %s%s%s \n" +
+		"%s%s%s %s%s%s %s%s%s %s%s%s \n" +
+		"\n" +
+		"       %s%s%s\n" +
+		"       %s%s%s\n" +
+		"       %s%s%s\n"
+
+	a := &r.state
+	b := &constant.IntToColor
+	fmt.Printf(
+		str,
+		b[a[4][0][0]].Sprint("  "),
+		b[a[4][0][1]].Sprint("  "),
+		b[a[4][0][2]].Sprint("  "),
+		b[a[4][1][0]].Sprint("  "),
+		b[a[4][1][1]].Sprint("  "),
+		b[a[4][1][2]].Sprint("  "),
+		b[a[4][2][0]].Sprint("  "),
+		b[a[4][2][1]].Sprint("  "),
+		b[a[4][2][2]].Sprint("  "),
+
+		b[a[0][0][0]].Sprint("  "),
+		b[a[0][0][1]].Sprint("  "),
+		b[a[0][0][2]].Sprint("  "),
+		b[a[1][0][0]].Sprint("  "),
+		b[a[1][0][1]].Sprint("  "),
+		b[a[1][0][2]].Sprint("  "),
+		b[a[2][0][0]].Sprint("  "),
+		b[a[2][0][1]].Sprint("  "),
+		b[a[2][0][2]].Sprint("  "),
+		b[a[3][0][0]].Sprint("  "),
+		b[a[3][0][1]].Sprint("  "),
+		b[a[3][0][2]].Sprint("  "),
+
+		b[a[0][1][0]].Sprint("  "),
+		b[a[0][1][1]].Sprint("  "),
+		b[a[0][1][2]].Sprint("  "),
+		b[a[1][1][0]].Sprint("  "),
+		b[a[1][1][1]].Sprint("  "),
+		b[a[1][1][2]].Sprint("  "),
+		b[a[2][1][0]].Sprint("  "),
+		b[a[2][1][1]].Sprint("  "),
+		b[a[2][1][2]].Sprint("  "),
+		b[a[3][1][0]].Sprint("  "),
+		b[a[3][1][1]].Sprint("  "),
+		b[a[3][1][2]].Sprint("  "),
+
+		b[a[0][2][0]].Sprint("  "),
+		b[a[0][2][1]].Sprint("  "),
+		b[a[0][2][2]].Sprint("  "),
+		b[a[1][2][0]].Sprint("  "),
+		b[a[1][2][1]].Sprint("  "),
+		b[a[1][2][2]].Sprint("  "),
+		b[a[2][2][0]].Sprint("  "),
+		b[a[2][2][1]].Sprint("  "),
+		b[a[2][2][2]].Sprint("  "),
+		b[a[3][2][0]].Sprint("  "),
+		b[a[3][2][1]].Sprint("  "),
+		b[a[3][2][2]].Sprint("  "),
+
+		b[a[5][0][0]].Sprint("  "),
+		b[a[5][0][1]].Sprint("  "),
+		b[a[5][0][2]].Sprint("  "),
+		b[a[5][1][0]].Sprint("  "),
+		b[a[5][1][1]].Sprint("  "),
+		b[a[5][1][2]].Sprint("  "),
+		b[a[5][2][0]].Sprint("  "),
+		b[a[5][2][1]].Sprint("  "),
+		b[a[5][2][2]].Sprint("  "),
+	)
+}
+
+func (r *rubik) State() *[6][3][3]uint8 {
+	return &r.state
 }
 
 func (r *rubik) Rotates(notations ...string) error {
@@ -56,9 +137,12 @@ func (r *rubik) rotate(notationStr string) error {
 		return err
 	}
 
+	fmt.Println("notation: ", notation)
+
 	faceIndex, ok := constant.NotationCharToFaceIndex[notation.NotationChar]
 	if !ok {
-		// notation char is MESXYZ
+		// TODO:
+		fmt.Errorf("notation char is MESXYZ, no implementation of it yet")
 	}
 
 	length := int(notation.Number % 4)
@@ -127,7 +211,25 @@ func (r *rubik) rotateFace(faceIndex int, inverse bool) {
 
 func (r *rubik) rotateSide(faceIndex int, inverse bool) {
 	adjSide := &constant.Around[faceIndex]
-	_ = adjSide
+
+	slice := make([]*uint8, 12)
+	for i := 0; i < 4; i++ {
+		for j := 0; j < 3; j++ {
+			idx := adjSide[i].SideIndex
+			pos := adjSide[i].Positions[j]
+			slice[i*3+j] = &r.state[idx][pos[0]][pos[1]]
+		}
+	}
+
+	if inverse {
+		utils.ShiftBy3(slice, false)
+	} else {
+		utils.ShiftBy3(slice, true)
+	}
+
+	// for i := uint8(0); i < 12; i++ {
+	// 	*slice[i] = 50 + i
+	// }
 }
 
 func (r *rubik) Reset() {

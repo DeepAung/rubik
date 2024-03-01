@@ -2,21 +2,23 @@ package rubik
 
 import (
 	"testing"
+
+	"github.com/DeepAung/rubik/rubik/types"
 )
 
 type notationTest struct {
 	input  string
-	output *notation
+	output *types.Notation
 }
 
 var notationTestList = []notationTest{
-	{input: "F", output: &notation{number: 1, notationChar: 'F', inverse: false}},
-	{input: "1F", output: &notation{number: 1, notationChar: 'F', inverse: false}},
-	{input: "F'", output: &notation{number: 1, notationChar: 'F', inverse: true}},
-	{input: "1F", output: &notation{number: 1, notationChar: 'F', inverse: false}},
-	{input: "1F'", output: &notation{number: 1, notationChar: 'F', inverse: true}},
-	{input: "157F", output: &notation{number: 157, notationChar: 'F', inverse: false}},
-	{input: "157F'", output: &notation{number: 157, notationChar: 'F', inverse: true}},
+	{input: "F", output: &types.Notation{Number: 1, NotationChar: 'F', Inverse: false}},
+	{input: "1F", output: &types.Notation{Number: 1, NotationChar: 'F', Inverse: false}},
+	{input: "F'", output: &types.Notation{Number: 1, NotationChar: 'F', Inverse: true}},
+	{input: "1F", output: &types.Notation{Number: 1, NotationChar: 'F', Inverse: false}},
+	{input: "1F'", output: &types.Notation{Number: 1, NotationChar: 'F', Inverse: true}},
+	{input: "157F", output: &types.Notation{Number: 157, NotationChar: 'F', Inverse: false}},
+	{input: "157F'", output: &types.Notation{Number: 157, NotationChar: 'F', Inverse: true}},
 	{input: "F127", output: nil},
 	{input: "'F127", output: nil},
 }
@@ -33,9 +35,9 @@ func TestGetNotation(t *testing.T) {
 			return
 		}
 
-		if notation.number != item.output.number ||
-			notation.notationChar != item.output.notationChar ||
-			notation.inverse != item.output.inverse {
+		if notation.Number != item.output.Number ||
+			notation.NotationChar != item.output.NotationChar ||
+			notation.Inverse != item.output.Inverse {
 			t.Fatalf("getNotation() error: \nget %v\nexpect %v\n", *notation, *item.output)
 		}
 

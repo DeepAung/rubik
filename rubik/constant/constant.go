@@ -3,7 +3,10 @@ package constant
 import (
 	"github.com/DeepAung/rubik/rubik/types"
 	"github.com/DeepAung/rubik/rubik/utils"
+	"github.com/gookit/color"
 )
+
+// TODO: check if all constant is correct
 
 /*
 Front is [1]
@@ -23,6 +26,7 @@ Left  front  right back
 
 var Opposite = [6]uint8{2, 3, 0, 1, 5, 4}
 
+// TODO: should have TopPrime, etc. and update the Around
 var (
 	Top    types.ThreeSide = [3][2]uint8{{0, 0}, {0, 1}, {0, 2}}
 	Bottom types.ThreeSide = [3][2]uint8{{2, 0}, {2, 1}, {2, 2}}
@@ -38,6 +42,15 @@ const (
 	Red
 	Orange
 )
+
+var IntToColor = [6]color.PrinterFace{
+	color.BgBlue,
+	color.BgWhite,
+	color.BgGreen,
+	color.BgYellow,
+	color.BgRed,
+	color.RGB(255, 165, 0, true),
+}
 
 const (
 	F byte = 'F'
