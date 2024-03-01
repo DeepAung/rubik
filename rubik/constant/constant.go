@@ -49,12 +49,12 @@ const (
 )
 
 var IntToColor = [6]color.PrinterFace{
-	color.BgBlue,
-	color.BgWhite,
-	color.BgGreen,
-	color.BgYellow,
-	color.BgRed,
-	color.RGB(255, 165, 0, true),
+	color.RGB(0, 0, 255, true),
+	color.RGB(255, 255, 255, true),
+	color.RGB(0, 255, 0, true),
+	color.RGB(255, 255, 0, true),
+	color.RGB(255, 0, 0, true),
+	color.RGB(255, 100, 0, true),
 }
 
 const (

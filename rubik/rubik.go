@@ -39,17 +39,17 @@ func NewRubik() IRubik {
 
 func (r *rubik) Print() {
 	str := "\n" +
-		"       %s%s%s\n" +
-		"       %s%s%s\n" +
-		"       %s%s%s\n" +
+		"        %s%s%s\n" +
+		"        %s%s%s\n" +
+		"        %s%s%s\n" +
 		"\n" +
-		"%s%s%s %s%s%s %s%s%s %s%s%s \n" +
-		"%s%s%s %s%s%s %s%s%s %s%s%s \n" +
-		"%s%s%s %s%s%s %s%s%s %s%s%s \n" +
+		"%s%s%s  %s%s%s  %s%s%s  %s%s%s \n" +
+		"%s%s%s  %s%s%s  %s%s%s  %s%s%s \n" +
+		"%s%s%s  %s%s%s  %s%s%s  %s%s%s \n" +
 		"\n" +
-		"       %s%s%s\n" +
-		"       %s%s%s\n" +
-		"       %s%s%s\n"
+		"        %s%s%s\n" +
+		"        %s%s%s\n" +
+		"        %s%s%s\n"
 
 	a := &r.state
 	b := &constant.IntToColor
