@@ -25,6 +25,9 @@ type IRubik interface {
 	State() *[6][3][3]uint8
 	Rotates(notations ...string) error
 	Reset()
+
+	// for test
+	getNotation(notationStr string) (*types.Notation, error)
 }
 
 type rubik struct {
