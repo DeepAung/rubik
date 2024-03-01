@@ -1,6 +1,6 @@
 module github.com/DeepAung/rubik
 
-go 1.21.6
+go 1.21.3
 
 require github.com/gookit/color v1.5.4
 
