@@ -1,19 +1,12 @@
 package rubik
 
-import "fmt"
+import (
+	"fmt"
 
-type IRubik interface {
-	Rotates(notations ...string) error
-	rotate(notationStr string) error
-	getNotation(notationStr string) (*notation, error)
-	rotateFace(faceIndex int, inverse bool)
-	rotateSide(faceIndex int, inverse bool)
-	Reset()
-
-	// utils
-	isDigit(char rune) bool
-	isNotationChar(char rune) bool
-}
+	"github.com/DeepAung/rubik/rubik/constant"
+	"github.com/DeepAung/rubik/rubik/types"
+	"github.com/DeepAung/rubik/rubik/utils"
+)
 
 /*
 Front is [1]
@@ -27,9 +20,22 @@ b w g y
   o
 */
 
+type IRubik interface {
+	Rotates(notations ...string) error
+	rotate(notationStr string) error
+	getNotation(notationStr string) (*types.Notation, error)
+	rotateFace(faceIndex int, inverse bool)
+	rotateSide(faceIndex int, inverse bool)
+	Reset()
+}
+
+type rubik struct {
+	state [6][3][3]uint8
+}
+
 func NewRubik() IRubik {
 	return &rubik{
-		state: initialState,
+		state: constant.InitialState,
 	}
 }
 
@@ -50,50 +56,50 @@ func (r *rubik) rotate(notationStr string) error {
 		return err
 	}
 
-	faceIndex, ok := notationCharToFaceIndex[notation.notationChar]
+	faceIndex, ok := constant.NotationCharToFaceIndex[notation.NotationChar]
 	if !ok {
 		// notation char is MESXYZ
 	}
 
-	length := int(notation.number % 4)
+	length := int(notation.Number % 4)
 	for i := 0; i < length; i++ {
-		r.rotateFace(faceIndex, notation.inverse)
-		r.rotateSide(faceIndex, notation.inverse)
+		r.rotateFace(faceIndex, notation.Inverse)
+		r.rotateSide(faceIndex, notation.Inverse)
 	}
 
 	return nil
 }
 
-func (r *rubik) getNotation(notationStr string) (*notation, error) {
-	res := &notation{
-		number:       0,
-		notationChar: '0',
-		inverse:      false,
+func (r *rubik) getNotation(notationStr string) (*types.Notation, error) {
+	res := &types.Notation{
+		Number:       0,
+		NotationChar: '0',
+		Inverse:      false,
 	}
 
 	collectingDigit := true
 	for _, char := range notationStr {
 		if collectingDigit {
-			if r.isDigit(char) {
-				res.number = res.number*10 + uint(char-'0')
-			} else if r.isNotationChar(char) {
+			if utils.IsDigit(char) {
+				res.Number = res.Number*10 + uint(char-'0')
+			} else if utils.IsNotationChar(char, constant.NotationCharSet) {
 				collectingDigit = false
-				res.notationChar = byte(char)
+				res.NotationChar = byte(char)
 			} else {
 				return nil, fmt.Errorf("invalid notation string")
 			}
 
 		} else {
 			if char == '\'' { // char == singlequote
-				res.inverse = true
+				res.Inverse = true
 			} else {
 				return nil, fmt.Errorf("invalid notation string")
 			}
 		}
 	}
 
-	if res.number == 0 {
-		res.number = 1
+	if res.Number == 0 {
+		res.Number = 1
 	}
 
 	return res, nil
@@ -120,23 +126,10 @@ func (r *rubik) rotateFace(faceIndex int, inverse bool) {
 }
 
 func (r *rubik) rotateSide(faceIndex int, inverse bool) {
-	// adjSide := &around[faceIndex]
+	adjSide := &constant.Around[faceIndex]
+	_ = adjSide
 }
 
 func (r *rubik) Reset() {
-	r.state = initialState
-}
-
-// utils ---------------------------------------------------- //
-func (r *rubik) isDigit(char rune) bool {
-	return '0' <= char && char <= '9'
-}
-
-func (r *rubik) isNotationChar(char rune) bool {
-	if char < 0 || char > 255 {
-		return false
-	}
-
-	_, ok := notationCharList[byte(char)]
-	return ok
+	r.state = constant.InitialState
 }
