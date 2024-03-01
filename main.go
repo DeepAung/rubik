@@ -1,17 +1,17 @@
 package main
 
-import "fmt"
+import (
+	"log"
+
+	"github.com/DeepAung/rubik/rubik"
+)
 
 func main() {
-	var input string
-	fmt.Scanf("%s", &input)
+	r := rubik.NewRubik()
+	r.Print()
 
-	byteString := []byte(input)
-	runeString := []rune(input)
-
-	fmt.Println("byteString: ", byteString)
-	fmt.Println("runeString: ", runeString)
-
-	fmt.Println("input[0]: ", input[0])
-	fmt.Println("[]rune(input)[0]: ", []rune(input)[0])
+	if err := r.Rotates("2F", "L", "L'", "R", "B"); err != nil {
+		log.Fatal("error: ", err)
+	}
+	r.Print()
 }

@@ -137,8 +137,6 @@ func (r *rubik) rotate(notationStr string) error {
 		return err
 	}
 
-	fmt.Println("notation: ", notation)
-
 	faceIndex, ok := constant.NotationCharToFaceIndex[notation.NotationChar]
 	if !ok {
 		// TODO:
@@ -194,7 +192,7 @@ func (r *rubik) rotateFace(faceIndex int, inverse bool) {
 
 	for i := 0; i < 3; i++ {
 		for j := i + 1; j < 3; j++ {
-			arr[i][j] = arr[j][i]
+			arr[i][j], arr[j][i] = arr[j][i], arr[i][j]
 		}
 	}
 
@@ -227,9 +225,6 @@ func (r *rubik) rotateSide(faceIndex int, inverse bool) {
 		utils.ShiftBy3(slice, true)
 	}
 
-	// for i := uint8(0); i < 12; i++ {
-	// 	*slice[i] = 50 + i
-	// }
 }
 
 func (r *rubik) Reset() {

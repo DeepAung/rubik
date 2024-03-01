@@ -26,12 +26,17 @@ Left  front  right back
 
 var Opposite = [6]uint8{2, 3, 0, 1, 5, 4}
 
-// TODO: should have TopPrime, etc. and update the Around
+// Rev == Reverse
 var (
 	Top    types.ThreeSide = [3][2]uint8{{0, 0}, {0, 1}, {0, 2}}
 	Bottom types.ThreeSide = [3][2]uint8{{2, 0}, {2, 1}, {2, 2}}
 	Left   types.ThreeSide = [3][2]uint8{{0, 0}, {1, 0}, {2, 0}}
 	Right  types.ThreeSide = [3][2]uint8{{0, 2}, {1, 2}, {2, 2}}
+
+	TopRev    types.ThreeSide = [3][2]uint8{{0, 2}, {0, 1}, {0, 0}}
+	BottomRev types.ThreeSide = [3][2]uint8{{2, 2}, {2, 1}, {2, 0}}
+	LeftRev   types.ThreeSide = [3][2]uint8{{2, 0}, {1, 0}, {0, 0}}
+	RightRev  types.ThreeSide = [3][2]uint8{{2, 2}, {1, 2}, {0, 2}}
 )
 
 const (
@@ -111,36 +116,36 @@ var Around = [6][4]types.AjacentSide{
 		types.AjacentSide{SideIndex: 4, Positions: Left},
 		types.AjacentSide{SideIndex: 1, Positions: Left},
 		types.AjacentSide{SideIndex: 5, Positions: Left},
-		types.AjacentSide{SideIndex: 3, Positions: Right},
+		types.AjacentSide{SideIndex: 3, Positions: RightRev},
 	},
 	{
 		types.AjacentSide{SideIndex: 4, Positions: Bottom},
 		types.AjacentSide{SideIndex: 2, Positions: Left},
-		types.AjacentSide{SideIndex: 5, Positions: Top},
-		types.AjacentSide{SideIndex: 0, Positions: Right},
+		types.AjacentSide{SideIndex: 5, Positions: TopRev},
+		types.AjacentSide{SideIndex: 0, Positions: RightRev},
 	},
 	{
-		types.AjacentSide{SideIndex: 4, Positions: Right},
+		types.AjacentSide{SideIndex: 4, Positions: RightRev},
 		types.AjacentSide{SideIndex: 3, Positions: Left},
-		types.AjacentSide{SideIndex: 5, Positions: Right},
-		types.AjacentSide{SideIndex: 1, Positions: Right},
+		types.AjacentSide{SideIndex: 5, Positions: RightRev},
+		types.AjacentSide{SideIndex: 1, Positions: RightRev},
 	},
 	{
-		types.AjacentSide{SideIndex: 4, Positions: Top},
+		types.AjacentSide{SideIndex: 4, Positions: TopRev},
 		types.AjacentSide{SideIndex: 0, Positions: Left},
 		types.AjacentSide{SideIndex: 5, Positions: Bottom},
-		types.AjacentSide{SideIndex: 2, Positions: Right},
+		types.AjacentSide{SideIndex: 2, Positions: RightRev},
 	},
 	{
-		types.AjacentSide{SideIndex: 5, Positions: Bottom},
-		types.AjacentSide{SideIndex: 2, Positions: Top},
+		types.AjacentSide{SideIndex: 3, Positions: TopRev},
+		types.AjacentSide{SideIndex: 2, Positions: TopRev},
+		types.AjacentSide{SideIndex: 1, Positions: TopRev},
+		types.AjacentSide{SideIndex: 0, Positions: TopRev},
+	},
+	{
 		types.AjacentSide{SideIndex: 1, Positions: Top},
+		types.AjacentSide{SideIndex: 2, Positions: Top},
+		types.AjacentSide{SideIndex: 3, Positions: Top},
 		types.AjacentSide{SideIndex: 0, Positions: Top},
-	},
-	{
-		types.AjacentSide{SideIndex: 4, Positions: Left},
-		types.AjacentSide{SideIndex: 1, Positions: Left},
-		types.AjacentSide{SideIndex: 5, Positions: Left},
-		types.AjacentSide{SideIndex: 3, Positions: Right},
 	},
 }
