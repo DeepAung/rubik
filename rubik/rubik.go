@@ -26,9 +26,10 @@ type IRubik interface {
 	Print()
 	IsSolved() bool
 	State() *[6][3][3]uint8
+	CycleNumber(notationsStr string) (times int, moves int, err error)
 
 	SetState(state *[6][3][3]uint8, saveHistory bool)
-	Rotates(notationsStr string, saveHistory bool) error
+	Rotates(notationsStr string, saveHistory bool) (moves int, err error)
 	Rotate(notation *types.Notation, saveHistory bool) error
 	RotateInverse(notation *types.Notation, saveHistory bool) error
 	Reset(saveHistory bool)
@@ -139,6 +140,36 @@ func (r *rubik) State() *[6][3][3]uint8 {
 	return &r.state
 }
 
+// number of times and moves of rotations that makes rubik reverts back to its original state
+// e.g.
+// CycleNumber("F")   => 4, 4, nil
+// CycleNumber("F F") => 2, 4, nil
+// CycleNumber("2F")  => 2, 4, nil
+func (r *rubik) CycleNumber(notationsStr string) (times int, moves int, err error) {
+	startState := r.state
+	LIMIT := 1000
+
+	for {
+		rotatedMoves, err := r.Rotates(notationsStr, false)
+		if err != nil {
+			return 0, 0, fmt.Errorf("Rotates error: %v", err)
+		}
+
+		times++
+		moves += rotatedMoves
+
+		if utils.SameState(&startState, &r.state) || times >= LIMIT {
+			break
+		}
+	}
+
+	if times == LIMIT {
+		return 0, 0, fmt.Errorf("cycle more than %d...", LIMIT)
+	}
+
+	return times, moves, nil
+}
+
 func (r *rubik) SetState(state *[6][3][3]uint8, saveHistory bool) {
 	if saveHistory {
 		r.historyManager.UpdateSet(&r.state, state)
@@ -147,21 +178,23 @@ func (r *rubik) SetState(state *[6][3][3]uint8, saveHistory bool) {
 	r.state = *state
 }
 
-func (r *rubik) Rotates(notationsStr string, saveHistory bool) error {
+func (r *rubik) Rotates(notationsStr string, saveHistory bool) (moves int, err error) {
 	slice := strings.Split(notationsStr, " ")
 	for _, notationStr := range slice {
 		notation, err := r.getNotation(notationStr)
 		if err != nil {
-			return err
+			return 0, err
 		}
+
+		moves += int(notation.Number)
 
 		err = r.Rotate(notation, saveHistory)
 		if err != nil {
-			return err
+			return 0, err
 		}
 	}
 
-	return nil
+	return moves, err
 }
 
 func (r *rubik) Rotate(notation *types.Notation, saveHistory bool) error {

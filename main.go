@@ -11,6 +11,11 @@ import (
 )
 
 func main() {
+	//testUndoRedo()
+	testCycleNumber()
+}
+
+func testUndoRedo() {
 	var mode int
 	var times int
 	in := bufio.NewReader(os.Stdin)
@@ -37,7 +42,7 @@ func main() {
 
 			line = strings.TrimSpace(line)
 
-			err = rubik.Rotates(line, true)
+			_, err = rubik.Rotates(line, true)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -56,5 +61,28 @@ func main() {
 			rubik.Redo(times)
 
 		}
+	}
+}
+
+func testCycleNumber() {
+	in := bufio.NewReader(os.Stdin)
+
+	rubik := rubik.NewRubik()
+
+	for {
+		fmt.Printf("notations: ")
+		line, err := in.ReadString('\n')
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		line = strings.TrimSpace(line)
+
+		times, moves, err := rubik.CycleNumber(line)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println("Cycle times: ", times, " | moves: ", moves)
 	}
 }
