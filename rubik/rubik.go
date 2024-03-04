@@ -2,8 +2,10 @@ package rubik
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/DeepAung/rubik/rubik/constant"
+	"github.com/DeepAung/rubik/rubik/historymanager"
 	"github.com/DeepAung/rubik/rubik/types"
 	"github.com/DeepAung/rubik/rubik/utils"
 )
@@ -22,21 +24,31 @@ b w g y
 
 type IRubik interface {
 	Print()
+	IsSolved() bool
 	State() *[6][3][3]uint8
-	Rotates(notations ...string) error
-	Reset()
+
+	SetState(state *[6][3][3]uint8, saveHistory bool)
+	Rotates(notationsStr string, saveHistory bool) error
+	Rotate(notation *types.Notation, saveHistory bool) error
+	RotateInverse(notation *types.Notation, saveHistory bool) error
+	Reset(saveHistory bool)
+
+	Undo(times int)
+	Redo(times int)
 
 	// for test
 	getNotation(notationStr string) (*types.Notation, error)
 }
 
 type rubik struct {
-	state [6][3][3]uint8
+	state          [6][3][3]uint8
+	historyManager historymanager.IHistoryManager
 }
 
 func NewRubik() IRubik {
 	return &rubik{
-		state: constant.InitialState,
+		state:          constant.InitialState,
+		historyManager: historymanager.New(),
 	}
 }
 
@@ -119,13 +131,31 @@ func (r *rubik) Print() {
 	)
 }
 
+func (r *rubik) IsSolved() bool {
+	return utils.SameState(&r.state, &constant.InitialState)
+}
+
 func (r *rubik) State() *[6][3][3]uint8 {
 	return &r.state
 }
 
-func (r *rubik) Rotates(notations ...string) error {
-	for _, notation := range notations {
-		err := r.rotate(notation)
+func (r *rubik) SetState(state *[6][3][3]uint8, saveHistory bool) {
+	if saveHistory {
+		r.historyManager.UpdateSet(&r.state, state)
+	}
+
+	r.state = *state
+}
+
+func (r *rubik) Rotates(notationsStr string, saveHistory bool) error {
+	slice := strings.Split(notationsStr, " ")
+	for _, notationStr := range slice {
+		notation, err := r.getNotation(notationStr)
+		if err != nil {
+			return err
+		}
+
+		err = r.Rotate(notation, saveHistory)
 		if err != nil {
 			return err
 		}
@@ -134,16 +164,11 @@ func (r *rubik) Rotates(notations ...string) error {
 	return nil
 }
 
-func (r *rubik) rotate(notationStr string) error {
-	notation, err := r.getNotation(notationStr)
-	if err != nil {
-		return err
-	}
-
+func (r *rubik) Rotate(notation *types.Notation, saveHistory bool) error {
 	faceIndex, ok := constant.NotationCharToFaceIndex[notation.NotationChar]
 	if !ok {
 		// TODO:
-		fmt.Errorf("notation char is MESXYZ, no implementation of it yet")
+		return fmt.Errorf("notation char is MESXYZ, no implementation of it yet")
 	}
 
 	length := int(notation.Number % 4)
@@ -152,8 +177,38 @@ func (r *rubik) rotate(notationStr string) error {
 		r.rotateSide(faceIndex, notation.Inverse)
 	}
 
+	if saveHistory {
+		r.historyManager.UpdateRotate(notation)
+	}
+
 	return nil
 }
+
+func (r *rubik) RotateInverse(notation *types.Notation, saveHistory bool) error {
+	return r.Rotate(&types.Notation{
+		Number:       notation.Number,
+		NotationChar: notation.NotationChar,
+		Inverse:      !notation.Inverse,
+	}, saveHistory)
+}
+
+func (r *rubik) Reset(saveHistory bool) {
+	if saveHistory {
+		r.historyManager.UpdateSet(&r.state, &constant.InitialState)
+	}
+
+	r.state = constant.InitialState
+}
+
+func (r *rubik) Undo(times int) {
+	r.historyManager.Undo(times, r)
+}
+
+func (r *rubik) Redo(times int) {
+	r.historyManager.Redo(times, r)
+}
+
+// --------------------------------------------------------------- //
 
 func (r *rubik) getNotation(notationStr string) (*types.Notation, error) {
 	res := &types.Notation{
@@ -228,8 +283,4 @@ func (r *rubik) rotateSide(faceIndex int, inverse bool) {
 		utils.ShiftBy3(slice, true)
 	}
 
-}
-
-func (r *rubik) Reset() {
-	r.state = constant.InitialState
 }

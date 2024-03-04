@@ -1,5 +1,19 @@
 package utils
 
+func SameState(a *[6][3][3]uint8, b *[6][3][3]uint8) bool {
+	for i := 0; i < 6; i++ {
+		for j := 0; j < 3; j++ {
+			for k := 0; k < 3; k++ {
+				if a[i][j][k] != b[i][j][k] {
+					return false
+				}
+			}
+		}
+	}
+
+	return true
+}
+
 func MakeSet[T comparable](items ...T) map[T]struct{} {
 	result := map[T]struct{}{}
 	for _, item := range items {

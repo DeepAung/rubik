@@ -39,22 +39,14 @@ var (
 	RightRev  types.ThreeSide = [3][2]uint8{{2, 2}, {1, 2}, {0, 2}}
 )
 
-const (
-	Blue types.Color = iota
-	White
-	Green
-	Yellow
-	Red
-	Orange
-)
-
+// uint8 in the state can be mapped to colors
 var IntToColor = [6]color.PrinterFace{
-	color.RGB(0, 0, 255, true),
-	color.RGB(255, 255, 255, true),
-	color.RGB(0, 255, 0, true),
-	color.RGB(255, 255, 0, true),
-	color.RGB(255, 0, 0, true),
-	color.RGB(255, 100, 0, true),
+	color.RGB(0, 0, 255, true),     // Blue
+	color.RGB(255, 255, 255, true), // White
+	color.RGB(0, 255, 0, true),     // Green
+	color.RGB(255, 255, 0, true),   // Yellow
+	color.RGB(255, 0, 0, true),     // Red
+	color.RGB(255, 100, 0, true),   // Orange
 }
 
 const (
@@ -76,7 +68,6 @@ var NotationCharSet = utils.MakeSet[byte](F, R, U, L, B, D, M, E, S, X, Y, Z)
 
 var NotationCharToFaceIndex = map[byte]int{F: 1, R: 2, U: 4, L: 0, B: 3, D: 5}
 
-// in 6 face has 4 clockwise ajacent 3 edge each edge has position([2]uint8)
 var InitialState = [6][3][3]uint8{
 	{
 		{0, 0, 0},
@@ -110,7 +101,7 @@ var InitialState = [6][3][3]uint8{
 	},
 }
 
-// around in clockwise
+// in 6 face has 4 clockwise ajacents that have 3 edges. each edge has position([2]uint8)
 var Around = [6][4]types.AjacentSide{
 	{
 		types.AjacentSide{SideIndex: 4, Positions: Left},
