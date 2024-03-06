@@ -1,0 +1,18 @@
+                                   RUBIK SIMULATOR
+
+
+        XXX
+        XXX
+        XXX
+
+   XXX  XXX  XXX  XXX
+   XXX  XXX  XXX  XXX
+   XXX  XXX  XXX  XXX
+
+        XXX
+        XXX
+        XXX
+
+┌─┐
+│ │
+└─┘

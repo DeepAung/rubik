@@ -24,6 +24,7 @@ b w g y
 
 type IRubik interface {
 	Print()
+	Sprint() string
 	IsSolved() bool
 	State() *[6][3][3]uint8
 	CycleNumber(notationsStr string) (times int, moves int, err error)
@@ -54,6 +55,10 @@ func NewRubik() IRubik {
 }
 
 func (r *rubik) Print() {
+	fmt.Print(r.Sprint())
+}
+
+func (r *rubik) Sprint() string {
 	str := "\n" +
 		"        %s%s%s\n" +
 		"        %s%s%s\n" +
@@ -69,7 +74,7 @@ func (r *rubik) Print() {
 
 	a := &r.state
 	b := &constant.IntToColor
-	fmt.Printf(
+	return fmt.Sprintf(
 		str,
 		b[a[4][0][0]].Sprint("  "),
 		b[a[4][0][1]].Sprint("  "),

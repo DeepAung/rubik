@@ -8,11 +8,20 @@ import (
 	"strings"
 
 	"github.com/DeepAung/rubik/rubik"
+	"github.com/DeepAung/rubik/ui"
 )
 
 func main() {
 	//testUndoRedo()
-	testCycleNumber()
+	// testCycleNumber()
+
+	ui.Start()
+
+	// s := "test"
+	// x := lipgloss.NewStyle().Foreground(lipgloss.Color("#FF06B7")).Render("a\naaaaa\n")
+	// z := "================="
+	//
+	// fmt.Println(lipgloss.JoinVertical(lipgloss.Top, s, x, z))
 }
 
 func testUndoRedo() {

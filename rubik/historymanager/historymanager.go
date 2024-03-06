@@ -76,9 +76,6 @@ func (h *historyManager) CanRedo() bool {
 
 func (h *historyManager) Undo(times int, r myIRubik) {
 	for i := 0; i < times; i++ {
-		fmt.Println("before=======================")
-		fmt.Println("idx: ", h.historyIdx)
-		fmt.Println("max idx: ", h.maxHistoryIdx)
 		if !h.CanUndo() {
 			return
 		}
@@ -95,9 +92,6 @@ func (h *historyManager) Undo(times int, r myIRubik) {
 		}
 
 		h.historyIdx--
-		fmt.Println("after=====================")
-		fmt.Println("idx: ", h.historyIdx)
-		fmt.Println("max idx: ", h.maxHistoryIdx)
 	}
 }
 

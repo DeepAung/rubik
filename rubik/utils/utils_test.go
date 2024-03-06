@@ -1,8 +1,10 @@
-package utils
+package utils_test
 
 import (
 	"fmt"
 	"testing"
+
+	"github.com/DeepAung/rubik/rubik/utils"
 )
 
 func TestShiftBy3(t *testing.T) {
@@ -21,7 +23,7 @@ func testShiftBy3(input []uint8, toRight bool, output []uint8) bool {
 	for i := 0; i < len(input); i++ {
 		slice[i] = &input[i]
 	}
-	ShiftBy3(slice, toRight)
+	utils.ShiftBy3(slice, toRight)
 
 	fmt.Printf("result: ")
 	for i := 0; i < len(slice); i++ {
