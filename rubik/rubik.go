@@ -37,6 +37,8 @@ type IRubik interface {
 
 	Undo(times int)
 	Redo(times int)
+	CanUndo() bool
+	CanRedo() bool
 
 	// for test
 	getNotation(notationStr string) (*types.Notation, error)
@@ -157,7 +159,7 @@ func (r *rubik) CycleNumber(notationsStr string) (times int, moves int, err erro
 	for {
 		rotatedMoves, err := r.Rotates(notationsStr, false)
 		if err != nil {
-			return 0, 0, fmt.Errorf("Rotates error: %v", err)
+			return 0, 0, err
 		}
 
 		times++
@@ -183,11 +185,15 @@ func (r *rubik) SetState(state *[6][3][3]uint8, saveHistory bool) {
 	r.state = *state
 }
 
+// TODO: try pipeline pattern
 func (r *rubik) Rotates(notationsStr string, saveHistory bool) (moves int, err error) {
+	savedState := r.state
+
 	slice := strings.Split(notationsStr, " ")
 	for _, notationStr := range slice {
 		notation, err := r.getNotation(notationStr)
 		if err != nil {
+			r.state = savedState
 			return 0, err
 		}
 
@@ -195,6 +201,7 @@ func (r *rubik) Rotates(notationsStr string, saveHistory bool) (moves int, err e
 
 		err = r.Rotate(notation, saveHistory)
 		if err != nil {
+			r.state = savedState
 			return 0, err
 		}
 	}
@@ -244,6 +251,14 @@ func (r *rubik) Undo(times int) {
 
 func (r *rubik) Redo(times int) {
 	r.historyManager.Redo(times, r)
+}
+
+func (r *rubik) CanUndo() bool {
+	return r.historyManager.CanUndo()
+}
+
+func (r *rubik) CanRedo() bool {
+	return r.historyManager.CanRedo()
 }
 
 // --------------------------------------------------------------- //
