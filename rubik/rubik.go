@@ -187,6 +187,10 @@ func (r *rubik) SetState(state *[6][3][3]uint8, saveHistory bool) {
 
 // TODO: try pipeline pattern
 func (r *rubik) Rotates(notationsStr string, saveHistory bool) (moves int, err error) {
+	if notationsStr == "" {
+		return 0, fmt.Errorf("no notations")
+	}
+
 	savedState := r.state
 
 	slice := strings.Split(notationsStr, " ")
@@ -210,6 +214,10 @@ func (r *rubik) Rotates(notationsStr string, saveHistory bool) (moves int, err e
 }
 
 func (r *rubik) Rotate(notation *types.Notation, saveHistory bool) error {
+	if notation == nil {
+		return fmt.Errorf("no notation")
+	}
+
 	faceIndex, ok := constant.NotationCharToFaceIndex[notation.NotationChar]
 	if !ok {
 		// TODO:

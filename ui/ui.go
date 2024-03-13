@@ -8,6 +8,8 @@ import (
 
 	"github.com/DeepAung/rubik/rubik"
 	"github.com/DeepAung/rubik/ui/utils"
+	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -29,10 +31,59 @@ const (
 	darkGray = lipgloss.Color("#767676")
 )
 
+type myKeyMap struct {
+	Next  key.Binding
+	Prev  key.Binding
+	Esc   key.Binding
+	Enter key.Binding
+	Help  key.Binding
+	Quit  key.Binding
+}
+
+var keys = myKeyMap{
+	Next: key.NewBinding(
+		key.WithKeys("tab", "down"),
+		key.WithHelp("tab/↓", "next"),
+	),
+	Prev: key.NewBinding(
+		key.WithKeys("shift+tab", "up"),
+		key.WithHelp("shift+tab/↑", "previous"),
+	),
+	Esc: key.NewBinding(
+		key.WithKeys("esc"),
+		key.WithHelp("esc", "unfocus"),
+	),
+	Enter: key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("enter", "focus or execute function"),
+	),
+	Help: key.NewBinding(
+		key.WithKeys("?"),
+		key.WithHelp("?", "toggle help"),
+	),
+	Quit: key.NewBinding(
+		key.WithKeys("ctrl+c", "q"),
+		key.WithHelp("q", "quit"),
+	),
+}
+
+func (k myKeyMap) ShortHelp() []key.Binding {
+	return []key.Binding{k.Help, k.Quit}
+}
+func (k myKeyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.Next, k.Prev, k.Enter},
+		{k.Help, k.Quit},
+	}
+}
+
 type model struct {
-	rubik       rubik.IRubik
+	rubik rubik.IRubik
+
+	// lipgloss' components
 	rotateInput textinput.Model
 	cycleInput  textinput.Model
+	help        help.Model
 
 	// states
 	focusIdx     int
@@ -43,6 +94,7 @@ type model struct {
 	// info
 	fullWidth  int
 	fullHeight int
+	keys       help.KeyMap
 }
 
 func initialModel() model {
@@ -63,9 +115,11 @@ func initialModel() model {
 	cycleInput.Width = 20
 
 	return model{
-		rubik:       rubik.NewRubik(),
+		rubik: rubik.NewRubik(),
+
 		rotateInput: rotateInput,
 		cycleInput:  cycleInput,
+		help:        help.New(),
 
 		focusIdx:     0,
 		currentMoves: 0,
@@ -74,6 +128,7 @@ func initialModel() model {
 
 		fullWidth:  fullWidth,
 		fullHeight: fullHeight,
+		keys:       keys,
 	}
 }
 
@@ -90,6 +145,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "ctrl+c", "q":
 			return m, tea.Quit
+
+		case "?":
+			m.help.ShowAll = !m.help.ShowAll
+			return m, nil
 
 		case "tab", "shift+tab", "up", "down":
 			s := msg.String()
@@ -113,12 +172,27 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 
+		case "esc":
+			switch m.focusIdx {
+			case 0:
+				m.rotateInput.Blur()
+				return m, nil
+			case 2:
+				m.cycleInput.Blur()
+				return m, nil
+			}
+
 		case "enter":
 			m.errorText = ""
 
 			switch m.focusIdx {
 
 			case 0:
+				if !m.rotateInput.Focused() {
+					m.rotateInput.Focus()
+					return m, nil
+				}
+
 				_, err := m.rubik.Rotates(m.rotateInput.Value(), true)
 				if err != nil {
 					m.errorText = err.Error()
@@ -129,6 +203,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.rubik.Reset(true)
 
 			case 2:
+				if !m.cycleInput.Focused() {
+					m.cycleInput.Focus()
+					return m, nil
+				}
+
 				times, moves, err := m.rubik.CycleNumber(m.cycleInput.Value())
 				if err != nil {
 					m.errorText = err.Error()
@@ -164,8 +243,10 @@ func (m model) View() string {
 			m.RubikView(),
 			m.ActionsView(),
 		),
+		"",
 		m.ErrorView(),
-		m.HelpView(),
+		"",
+		m.help.View(m.keys),
 	)
 }
 
@@ -181,32 +262,14 @@ func (m model) HeaderView() string {
 // TODO: create rubik view using lipgloss
 func (m model) RubikView() string {
 	return lipgloss.NewStyle().
-		Width(m.fullWidth / 2).
-		Render(m.rubik.Sprint())
-	// return lipgloss.NewStyle().
-	// 	Width(m.fullWidth / 2).
-	// 	Render(
-	// 		lipgloss.JoinHorizontal(lipgloss.Center,
-	// 			m.rubikFaceView(0),
-	// 			lipgloss.JoinVertical(lipgloss.Center,
-	// 				m.rubikFaceView(4),
-	// 				m.rubikFaceView(1),
-	// 				m.rubikFaceView(5),
-	// 			),
-	// 			m.rubikFaceView(2),
-	// 			m.rubikFaceView(3),
-	// 		),
-	// 	)
+		Width(m.fullWidth/2-2).
+		Align(lipgloss.Center, lipgloss.Center).
+		Render(
+			lipgloss.NewStyle().
+				BorderStyle(lipgloss.HiddenBorder()).
+				Render(m.rubik.Sprint()),
+		)
 }
-
-// func (m model) rubikFaceView(faceIdx int) string {
-// 	return lipgloss.JoinVertical(lipgloss.Center)
-// }
-//
-// func (m model) rubikColorView(faceIdx int, i int, j int) string {
-// 	x := constant.IntToColor[m.rubik.State()[faceIdx][i][j]]
-// 	return lipgloss.NewStyle().Foreground(x)
-// }
 
 func (m model) ActionsView() string {
 	sections := [][]string{
@@ -259,9 +322,4 @@ func (m model) ErrorView() string {
 	}
 
 	return lipgloss.NewStyle().Foreground(red).Italic(true).Render("error: ", m.errorText)
-}
-
-// TODO:
-func (m model) HelpView() string {
-	return ""
 }
