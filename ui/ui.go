@@ -2,18 +2,16 @@ package ui
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/DeepAung/rubik/rubik"
 	"github.com/DeepAung/rubik/ui/utils"
 	"github.com/charmbracelet/bubbles/help"
-	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"golang.org/x/term"
 )
 
 func Start() {
@@ -31,51 +29,7 @@ const (
 	darkGray = lipgloss.Color("#767676")
 )
 
-type myKeyMap struct {
-	Next  key.Binding
-	Prev  key.Binding
-	Esc   key.Binding
-	Enter key.Binding
-	Help  key.Binding
-	Quit  key.Binding
-}
-
-var keys = myKeyMap{
-	Next: key.NewBinding(
-		key.WithKeys("tab", "down"),
-		key.WithHelp("tab/↓", "next"),
-	),
-	Prev: key.NewBinding(
-		key.WithKeys("shift+tab", "up"),
-		key.WithHelp("shift+tab/↑", "previous"),
-	),
-	Esc: key.NewBinding(
-		key.WithKeys("esc"),
-		key.WithHelp("esc", "unfocus"),
-	),
-	Enter: key.NewBinding(
-		key.WithKeys("enter"),
-		key.WithHelp("enter", "focus or execute function"),
-	),
-	Help: key.NewBinding(
-		key.WithKeys("?"),
-		key.WithHelp("?", "toggle help"),
-	),
-	Quit: key.NewBinding(
-		key.WithKeys("ctrl+c", "q"),
-		key.WithHelp("q", "quit"),
-	),
-}
-
-func (k myKeyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Help, k.Quit}
-}
-func (k myKeyMap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{k.Next, k.Prev, k.Enter},
-		{k.Help, k.Quit},
-	}
-}
+const minWidthResponsive = 80
 
 type model struct {
 	rubik rubik.IRubik
@@ -98,10 +52,7 @@ type model struct {
 }
 
 func initialModel() model {
-	fullWidth, fullHeight, err := term.GetSize(int(os.Stdout.Fd()))
-	if err != nil {
-		log.Fatal(err)
-	}
+	fullWidth, fullHeight := utils.GetFullWidthHeight()
 
 	rotateInput := textinput.New()
 	rotateInput.Focus()
@@ -132,12 +83,23 @@ func initialModel() model {
 	}
 }
 
+type tickMsg int
+
+func tick() tea.Msg {
+	time.Sleep(time.Second / 10)
+	return tickMsg(1)
+}
+
 func (m model) Init() tea.Cmd {
-	return textinput.Blink
+	return tea.Batch(tick, textinput.Blink)
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+
+	case tickMsg:
+		m.fullWidth, m.fullHeight = utils.GetFullWidthHeight()
+		return m, tick
 
 	case tea.KeyMsg:
 
@@ -238,8 +200,7 @@ func (m model) View() string {
 	return lipgloss.JoinVertical(
 		lipgloss.Center,
 		m.HeaderView(),
-		lipgloss.JoinHorizontal(
-			lipgloss.Top,
+		m.ResponsiveView(
 			m.RubikView(),
 			m.ActionsView(),
 		),
@@ -248,6 +209,14 @@ func (m model) View() string {
 		"",
 		m.help.View(m.keys),
 	)
+}
+
+func (m model) ResponsiveView(children ...string) string {
+	if m.fullWidth < minWidthResponsive {
+		return lipgloss.JoinVertical(lipgloss.Center, children...)
+	}
+
+	return lipgloss.JoinHorizontal(lipgloss.Top, children...)
 }
 
 func (m model) HeaderView() string {
@@ -261,8 +230,13 @@ func (m model) HeaderView() string {
 
 // TODO: create rubik view using lipgloss
 func (m model) RubikView() string {
+	width := m.fullWidth/2 - 2
+	if m.fullWidth < minWidthResponsive {
+		width = m.fullWidth - 2
+	}
+
 	return lipgloss.NewStyle().
-		Width(m.fullWidth/2-2).
+		Width(width).
 		Align(lipgloss.Center, lipgloss.Center).
 		Render(
 			lipgloss.NewStyle().
