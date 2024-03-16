@@ -13,6 +13,11 @@ type Notation struct {
 	Inverse      bool
 }
 
+type OneNotation struct {
+	Char    byte
+	Inverse bool
+}
+
 type History struct {
 	HistoryType    HistoryType
 	NotationChange Notation

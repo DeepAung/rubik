@@ -220,14 +220,38 @@ func (r *rubik) Rotate(notation *types.Notation, saveHistory bool) error {
 
 	faceIndex, ok := constant.NotationCharToFaceIndex[notation.NotationChar]
 	if !ok {
-		// TODO:
-		return fmt.Errorf("notation char is MESXYZ, no implementation of it yet")
+		return fmt.Errorf("invalid notation char")
 	}
 
 	length := int(notation.Number % 4)
-	for i := 0; i < length; i++ {
-		r.rotateFace(faceIndex, notation.Inverse)
-		r.rotateSide(faceIndex, notation.Inverse)
+
+	switch notation.NotationChar {
+
+	case 'X', 'Y', 'Z':
+		tmp := constant.ForXYZ[notation.NotationChar]
+		if notation.Inverse {
+			tmp[0].Inverse = !tmp[0].Inverse
+			tmp[1].Inverse = !tmp[1].Inverse
+			tmp[2].Inverse = !tmp[2].Inverse
+		}
+
+		for i := 0; i < length; i++ {
+			r.rotateFace(tmp[0].Char, tmp[0].Inverse)
+			r.rotateFace(tmp[2].Char, tmp[2].Inverse)
+
+			r.rotateSide(tmp[0].Char, tmp[0].Inverse)
+			r.rotateSide(tmp[1].Char, tmp[1].Inverse)
+			r.rotateSide(tmp[2].Char, tmp[2].Inverse)
+		}
+
+	default:
+		for i := 0; i < length; i++ {
+			if faceIndex != -1 {
+				r.rotateFace(notation.NotationChar, notation.Inverse)
+			}
+			r.rotateSide(notation.NotationChar, notation.Inverse)
+		}
+
 	}
 
 	if saveHistory {
@@ -306,7 +330,8 @@ func (r *rubik) getNotation(notationStr string) (*types.Notation, error) {
 	return res, nil
 }
 
-func (r *rubik) rotateFace(faceIndex int, inverse bool) {
+func (r *rubik) rotateFace(char byte, inverse bool) {
+	faceIndex := constant.NotationCharToFaceIndex[char]
 	arr := &r.state[faceIndex]
 
 	for i := 0; i < 3; i++ {
@@ -326,14 +351,14 @@ func (r *rubik) rotateFace(faceIndex int, inverse bool) {
 	}
 }
 
-func (r *rubik) rotateSide(faceIndex int, inverse bool) {
-	adjSide := &constant.Around[faceIndex]
+func (r *rubik) rotateSide(char byte, inverse bool) {
+	sides := constant.NotationCharToSides[char]
 
 	slice := make([]*uint8, 12)
 	for i := 0; i < 4; i++ {
 		for j := 0; j < 3; j++ {
-			idx := adjSide[i].SideIndex
-			pos := adjSide[i].Positions[j]
+			idx := sides[i].SideIndex
+			pos := sides[i].Positions[j]
 			slice[i*3+j] = &r.state[idx][pos[0]][pos[1]]
 		}
 	}

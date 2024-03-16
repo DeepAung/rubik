@@ -16,12 +16,6 @@ func main() {
 	// testCycleNumber()
 
 	ui.Start()
-
-	// s := "test"
-	// x := lipgloss.NewStyle().Foreground(lipgloss.Color("#FF06B7")).Render("a\naaaaa\n")
-	// z := "================="
-	//
-	// fmt.Println(lipgloss.JoinVertical(lipgloss.Top, s, x, z))
 }
 
 func testUndoRedo() {

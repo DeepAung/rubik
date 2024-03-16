@@ -228,7 +228,6 @@ func (m model) HeaderView() string {
 		Render("Rubik Simulator")
 }
 
-// TODO: create rubik view using lipgloss
 func (m model) RubikView() string {
 	width := m.fullWidth/2 - 2
 	if m.fullWidth < minWidthResponsive {
