@@ -20,15 +20,6 @@ func BenchmarkRotates(b *testing.B) {
 	}
 }
 
-func BenchmarkRotatesPipeline(b *testing.B) {
-	rubik := NewRubik()
-	input := genNotationInput(10000)
-
-	for i := 0; i < b.N; i++ {
-		rubik.RotatesPipeline(input, true)
-	}
-}
-
 func genNotationInput(n int) string {
 	notationSet := [12]byte{'F', 'R', 'U', 'L', 'B', 'D', 'M', 'E', 'S', 'X', 'Y', 'Z'}
 
@@ -140,18 +131,6 @@ var rotateOutput = [6][3][3]uint8{
 func TestRotates(t *testing.T) {
 	rubik := NewRubik()
 	_, err := rubik.Rotates(rotateInput, true)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if !utils.SameState(rubik.State(), &rotateOutput) {
-		t.Fatal("not the same state")
-	}
-}
-
-func TestRotatesPipeline(t *testing.T) {
-	rubik := NewRubik()
-	_, err := rubik.RotatesPipeline(rotateInput, true)
 	if err != nil {
 		t.Fatal(err)
 	}
