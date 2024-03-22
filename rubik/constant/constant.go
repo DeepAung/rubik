@@ -3,6 +3,7 @@ package constant
 import (
 	"github.com/DeepAung/rubik/rubik/types"
 	"github.com/DeepAung/rubik/rubik/utils"
+
 	"github.com/gookit/color"
 )
 

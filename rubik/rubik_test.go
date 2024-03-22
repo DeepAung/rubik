@@ -1,6 +1,9 @@
 package rubik
 
 import (
+	"math/rand"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/DeepAung/rubik/rubik/constant"
@@ -8,12 +11,47 @@ import (
 	"github.com/DeepAung/rubik/rubik/utils"
 )
 
-func BenchmarkRubikNormalRotates(b *testing.B) {
+func BenchmarkRotates(b *testing.B) {
 	rubik := NewRubik()
-	input := "F R U L B D M E S X Y Z F' R' U' L' B' D' M' E' S' X' Y' Z'"
+	input := genNotationInput(10000)
+
 	for i := 0; i < b.N; i++ {
 		rubik.Rotates(input, true)
 	}
+}
+
+func BenchmarkRotatesPipeline(b *testing.B) {
+	rubik := NewRubik()
+	input := genNotationInput(10000)
+
+	for i := 0; i < b.N; i++ {
+		rubik.RotatesPipeline(input, true)
+	}
+}
+
+func genNotationInput(n int) string {
+	notationSet := [12]byte{'F', 'R', 'U', 'L', 'B', 'D', 'M', 'E', 'S', 'X', 'Y', 'Z'}
+
+	var res strings.Builder
+	for i := 0; i < n; i++ {
+		number := rand.Intn(100)
+		char := notationSet[rand.Intn(12)]
+		inverse := rand.Intn(2) == 0
+
+		if number != 0 {
+			res.WriteString(strconv.Itoa(number))
+		}
+		res.WriteByte(char)
+		if inverse {
+			res.WriteByte('\'')
+		}
+
+		if i != n-1 {
+			res.WriteByte(' ')
+		}
+	}
+
+	return res.String()
 }
 
 func TestGetNotation(t *testing.T) {
@@ -58,53 +96,67 @@ func TestGetNotation(t *testing.T) {
 	}
 }
 
-func TestRotate(t *testing.T) {
-	B, W, G, Y, R, O := constant.Blue, constant.White, constant.Green, constant.Yellow, constant.Red, constant.Orange
+const rotateInput = "F R U L B D M E S X Y Z F' R' U' L' B' D' M' E' S' X' Y' Z'"
+const B = constant.Blue
+const W = constant.White
+const G = constant.Green
+const Y = constant.Yellow
+const R = constant.Red
+const O = constant.Orange
 
+var rotateOutput = [6][3][3]uint8{
+	{
+		{O, O, W},
+		{O, G, Y},
+		{Y, G, B},
+	},
+	{
+		{B, W, Y},
+		{G, Y, R},
+		{Y, R, R},
+	},
+	{
+		{G, Y, R},
+		{W, B, B},
+		{W, Y, O},
+	},
+	{
+		{W, G, W},
+		{R, W, B},
+		{Y, G, R},
+	},
+	{
+		{G, R, G},
+		{W, R, B},
+		{O, B, O},
+	},
+	{
+		{R, Y, B},
+		{W, O, O},
+		{G, O, B},
+	},
+}
+
+func TestRotates(t *testing.T) {
 	rubik := NewRubik()
-	input := "F R U L B D M E S X Y Z F' R' U' L' B' D' M' E' S' X' Y' Z'"
-	expectState := [6][3][3]uint8{
-		{
-			{O, O, W},
-			{O, G, Y},
-			{Y, G, B},
-		},
-		{
-			{B, W, Y},
-			{G, Y, R},
-			{Y, R, R},
-		},
-		{
-			{G, Y, R},
-			{W, B, B},
-			{W, Y, O},
-		},
-		{
-			{W, G, W},
-			{R, W, B},
-			{Y, G, R},
-		},
-		{
-			{G, R, G},
-			{W, R, B},
-			{O, B, O},
-		},
-		{
-			{R, Y, B},
-			{W, O, O},
-			{G, O, B},
-		},
+	_, err := rubik.Rotates(rotateInput, true)
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	// arr := strings.Split(input, " ")
-	// for _, item := range arr {
-	// 	rubik.Rotates(item, true)
-	// 	fmt.Println("notation string: ", item)
-	// 	rubik.Print()
-	// }
+	if !utils.SameState(rubik.State(), &rotateOutput) {
+		t.Fatal("not the same state")
+	}
+}
 
-	rubik.Rotates(input, true)
-	if !utils.SameState(rubik.State(), &expectState) {
-		t.FailNow()
+func TestRotatesPipeline(t *testing.T) {
+	rubik := NewRubik()
+	_, err := rubik.RotatesPipeline(rotateInput, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !utils.SameState(rubik.State(), &rotateOutput) {
+		t.Fatal("not the same state")
 	}
 }

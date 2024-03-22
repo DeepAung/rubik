@@ -31,6 +31,7 @@ type IRubik interface {
 
 	SetState(state *[6][3][3]uint8, saveHistory bool)
 	Rotates(notationsStr string, saveHistory bool) (moves int, err error)
+	RotatesPipeline(notationsStr string, saveHistory bool) (moves int, err error)
 	Rotate(notation *types.Notation, saveHistory bool) error
 	RotateInverse(notation *types.Notation, saveHistory bool) error
 	Reset(saveHistory bool)
@@ -185,7 +186,6 @@ func (r *rubik) SetState(state *[6][3][3]uint8, saveHistory bool) {
 	r.state = *state
 }
 
-// TODO: try pipeline pattern
 func (r *rubik) Rotates(notationsStr string, saveHistory bool) (moves int, err error) {
 	if notationsStr == "" {
 		return 0, fmt.Errorf("no notations")
@@ -211,6 +211,124 @@ func (r *rubik) Rotates(notationsStr string, saveHistory bool) (moves int, err e
 	}
 
 	return moves, err
+}
+
+type pipelineRes struct {
+	Notation types.Notation
+	Error    error
+}
+
+func (r *rubik) RotatesPipeline(notationsStr string, saveHistory bool) (moves int, err error) {
+	if notationsStr == "" {
+		return 0, fmt.Errorf("no notations")
+	}
+
+	savedState := r.state
+
+	ch1 := r.getNotationsPipeline(notationsStr, &moves)
+	ch2 := r.rotatesPipeline(ch1, saveHistory)
+
+	for err := range ch2 {
+		if err != nil {
+			r.state = savedState
+			return 0, err
+		}
+	}
+
+	return moves, nil
+}
+
+func (r *rubik) getNotationsPipeline(notationsStr string, moves *int) <-chan pipelineRes {
+	out := make(chan pipelineRes)
+
+	go func() {
+		defer close(out)
+
+		initialRes := types.Notation{
+			Number:       0,
+			NotationChar: '0',
+			Inverse:      false,
+		}
+
+		res := initialRes
+		initial := true
+		collectingDigit := true
+		for _, char := range notationsStr {
+			if char == ' ' {
+				if initial {
+					continue
+				}
+				if res.Number == 0 {
+					res.Number = 1
+				}
+				*moves += int(res.Number)
+				out <- pipelineRes{Notation: res}
+
+				res = initialRes
+				initial = true
+				collectingDigit = true
+
+				continue
+			}
+
+			if collectingDigit {
+				if utils.IsDigit(char) {
+					res.Number = res.Number*10 + uint(char-'0')
+					initial = false
+				} else if utils.IsNotationChar(char, constant.NotationCharSet) {
+					initial = false
+					collectingDigit = false
+					res.NotationChar = byte(char)
+				} else {
+					out <- pipelineRes{Error: fmt.Errorf("invalid notation string")}
+					return
+				}
+
+			} else {
+				if char == '\'' { // char == singlequote
+					res.Inverse = true
+				} else {
+					out <- pipelineRes{Error: fmt.Errorf("invalid notation string")}
+				}
+			}
+		}
+
+		if initial {
+			return
+		}
+		if res.Number == 0 {
+			res.Number = 1
+		}
+		*moves += int(res.Number)
+		out <- pipelineRes{Notation: res}
+	}()
+
+	return out
+}
+
+func (r *rubik) rotatesPipeline(in <-chan pipelineRes, saveHistory bool) <-chan error {
+	out := make(chan error)
+
+	go func() {
+		defer close(out)
+
+		for res := range in {
+			if res.Error != nil {
+				out <- res.Error
+				break
+			}
+
+			err := r.Rotate(&res.Notation, saveHistory)
+			if err != nil {
+				out <- err
+				break
+			}
+
+			out <- nil
+		}
+	}()
+
+	return out
 }
 
 func (r *rubik) Rotate(notation *types.Notation, saveHistory bool) error {
