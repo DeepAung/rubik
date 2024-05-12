@@ -1,3 +1,5 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/DeepAung/rubik)](https://goreportcard.com/report/github.com/DeepAung/rubik)
+
 # rubik
 A Rubik's simulator app in the terminal. using [bubbletea](https://github.com/charmbracelet/bubbletea) as the terminal framework.
 
